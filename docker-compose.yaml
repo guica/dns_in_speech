@@ -1,0 +1,26 @@
+version: '2.3'
+
+services:
+
+  notebook:
+    restart: always
+    image: camargog95/tcc:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: 'notebook'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - '8888:8888'
+      - '8088:8088'
+    volumes:
+      - './:/tf'
+    environment:
+    - JUPYTER_PATH=/tf/utils/
+    - TF_CPP_MIN_LOG_LEVEL=3
