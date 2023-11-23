@@ -96,7 +96,7 @@ class DataGenerator(ABC):
         return A, phi
 
     @abstractmethod
-    def generate_sample_completo(self, batch_size=32):
+    def generate_sample_completo(self, batch_size=32, only_return_mudule=False):
         pass
 
 
@@ -104,7 +104,7 @@ class NoisyTargetGenerator(DataGenerator):
     def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True):
         super().__init__(sound_files, noise_files, block_size=block_size, normalize_phi=normalize_phi)
 
-    def generate_sample_completo(self, batch_size=32, include_clean=False):
+    def generate_sample_completo(self, batch_size=32, include_clean=False, only_return_mudule=False):
         while True:
             # Carrega um lote de vozes e ruidos
             sound_batch, noise_batch = self.pick_random_blocks(batch_size)
@@ -129,13 +129,23 @@ class NoisyTargetGenerator(DataGenerator):
                 F = self.assemble_phasors(A, phi)
                 F_noisy = self.assemble_phasors(A_noisy, phi_noisy)
                 
-                # Adiciona os exemplos aos lotes de treinamento
-                x_train.append(F_noisy)
-                y_train.append(F)
-                
-                if include_clean:
-                    x_train.append(F)
+                if not only_return_mudule:
+                    # Adiciona os exemplos aos lotes de treinamento
+                    x_train.append(F_noisy)
                     y_train.append(F)
+                    
+                    if include_clean:
+                        x_train.append(F)
+                        y_train.append(F)
+                
+                else:
+                    # Adiciona os exemplos aos lotes de treinamento
+                    x_train.append(F_noisy[..., 0].reshape(F_noisy.shape[0], F_noisy.shape[1], 1))
+                    y_train.append(F[..., 0].reshape(F.shape[0], F.shape[1], 1))
+                    
+                    if include_clean:
+                        x_train.append(F[..., 0].reshape(F.shape[0], F.shape[1], 1))
+                        y_train.append(F[..., 0].reshape(F.shape[0], F.shape[1], 1))
 
             x_train = np.array(x_train)
             y_train = np.array(y_train)
@@ -273,7 +283,7 @@ class NoisyTargetWithMetricsGenerator(DataGenerator):
     def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True):
         super().__init__(sound_files, noise_files, block_size=block_size, normalize_phi=normalize_phi)
 
-    def generate_sample_completo(self, batch_size=32):
+    def generate_sample_completo(self, batch_size=32, only_return_mudule=False):
         while True:
             sound_batch, noise_batch = self.pick_random_blocks(batch_size)
             
@@ -337,7 +347,7 @@ class PESQWithMetricsGenerator(DataGenerator):
         valor_max = 4.64
         return (pesq_score - valor_min) / (valor_max - valor_min)
 
-    def generate_sample_completo(self, batch_size=32):
+    def generate_sample_completo(self, batch_size=32, only_return_mudule=False):
         while True:
             # Carrega um lote de vozes e ruidos
             sound_batch, noise_batch = self.pick_random_blocks(batch_size)

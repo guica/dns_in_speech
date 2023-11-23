@@ -5,6 +5,7 @@ import pystoi
 import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
+import numpy as np
 
 from abc import ABC, abstractmethod
 
@@ -47,16 +48,20 @@ class NoisyTargetEvaluator(Evaluator):
     def __init__(self, base_shape_size, speech_path, noise_path, model_path, model_name):
         super().__init__(base_shape_size, speech_path, noise_path, model_path, model_name)
 
-        self.data_generator = NoisyTargetWithMetricsGenerator(self.sound_base.train_X, self.sound_base.noise_sounds)
+        self.data_generator = NoisyTargetWithMetricsGenerator(self.sound_base.clean_sounds, self.sound_base.noise_sounds)
     
-    def process_batch(self, x_batch, y_batch):
-        stfts = self.model.predict(x_batch, verbose=False)
+    def process_batch(self, x_batch, y_batch, module_only=False):
+        if module_only:
+            stfts = self.model.predict(x_batch[..., 0], verbose=False)
+            stfts = np.concatenate([stfts, x_batch[..., 1].reshape(-1, x_batch.shape[1], x_batch.shape[2], 1)], axis=-1)
+        else:
+            stfts = self.model.predict(x_batch, verbose=False)
+
         M = stfts.shape[0]  # Obtenha as dimensões do array de resultados do modelo
 
         pesq_scores = []
         stoi_scores = []
         snr_scores = []
-        ID_scores = []
 
         for i in range(M):
             filtered = stfts[i, :, :, :]  # Obtenha o resultado do modelo para a iteração atual
@@ -72,22 +77,20 @@ class NoisyTargetEvaluator(Evaluator):
                 pesq_score = 1.04
             stoi_score = pystoi.stoi(clean_signal, filtered_signal, 8000)
             snr_score = calculate_snr(clean_signal, filtered_signal)
-            # ID_score = itakura_distortion(clean_signal, filtered_signal, 256, 11)
 
             pesq_scores.append(pesq_score)
             stoi_scores.append(stoi_score)
             snr_scores.append(snr_score)
-            # ID_scores.append(ID_score)
 
         return pesq_scores, stoi_scores, snr_scores
     
-    def evaluate(self, batch_num=50):
+    def evaluate(self, batch_num=50, module_only=False):
         results = []
         df_resultado = pd.DataFrame()
 
         for _ in tqdm(range(batch_num)):
             x_batch, y_batch, metrics_batch_df = next(self.data_generator.generate_sample_completo(batch_size=128))
-            results.append((self.process_batch(x_batch, y_batch), metrics_batch_df))
+            results.append((self.process_batch(x_batch, y_batch, module_only=module_only), metrics_batch_df))
 
         df_resultado = pd.DataFrame()
 
@@ -125,7 +128,7 @@ class PESQEvaluator(Evaluator):
         super().__init__(base_shape_size, speech_path, noise_path, model_path, model_name)
 
         self.gen_model = gen_model
-        self.data_generator = PESQWithMetricsGenerator(self.sound_base.train_X, self.sound_base.noise_sounds, model=self.gen_model, normalize_pesq=False)
+        self.data_generator = PESQWithMetricsGenerator(self.sound_base.clean_sounds, self.sound_base.noise_sounds, model=self.gen_model, normalize_pesq=False)
     
     def process_batch(self, x_batch):
         predicted_pesq_scores = self.model.predict(x_batch, verbose=False)

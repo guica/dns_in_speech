@@ -345,7 +345,7 @@ def itakura_distortion(sinal_original, sinal_ruidoso, window, order):
 def performance(df_results, filter_name, snr_lte=100., snr_gte=0.):
     df_results_filtered = df_results[df_results['SNR'] <= snr_lte]
     df_results_filtered = df_results_filtered[df_results_filtered['SNR'] >= snr_gte]
-    metrics = ['PESQ', 'STOI', 'SNR', 'ID']
+    metrics = ['PESQ', 'STOI', 'SNR']
     
     for metric in metrics:
         plt.figure(figsize=(8, 6))
@@ -353,10 +353,10 @@ def performance(df_results, filter_name, snr_lte=100., snr_gte=0.):
         x = df_results_filtered[metric]
         y = df_results_filtered[f'{metric} (Filtered)']
     
-        if metric != 'ID':
-            improved = x < y  # Verifica se o filtro melhorou a métrica
-        else:
-            improved = x > y  # Verifica se o filtro melhorou a métrica
+        # if metric != 'ID':
+        #     improved = x < y  # Verifica se o filtro melhorou a métrica
+        # else:
+        improved = x < y  # Verifica se o filtro melhorou a métrica
         
         plt.scatter(x[improved], y[improved], c='green', alpha=0.5, label='Melhorado')
         plt.scatter(x[~improved], y[~improved], c='red', alpha=0.5, label='Piorado')

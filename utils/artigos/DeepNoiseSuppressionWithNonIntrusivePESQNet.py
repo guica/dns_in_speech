@@ -112,7 +112,7 @@ class DeepNoiseSuppressionWithNonIntrusivePESQNet(object):
         skip2 = Concatenate()([conv8, conv2])
         
         # Output layer with linear activation to produce the final enhanced signal.
-        mask = Conv2D(self.Cout, (self.N, self.N), padding='same', activation='linear')(skip2)
+        mask = Conv2D(self.Cout, (self.N, self.N), padding='same', activation='relu')(skip2)
 
         outputs = Multiply()([inputs, mask])
         

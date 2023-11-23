@@ -141,13 +141,13 @@ class AttentionResUnet(object):
         conv_8 = self.double_conv_layer(pool_8, self.FILTER_SIZE, 16*self.FILTER_NUM, dropout_rate, batch_norm)
         
         # ConvLSTM layer for capturing temporal dependencies in the encoded feature space.
-        convlstm = ConvLSTM1D(128, 64, padding='same', return_sequences=True)(conv_8)
+        # convlstm = ConvLSTM1D(128, 64, padding='same', return_sequences=True)(conv_8)
 
         # Upsampling layers
         # UpRes 6, attention gated concatenation + upsampling + double residual convolution
-        gating_16 = self.gating_signal(convlstm, 8*self.FILTER_NUM, batch_norm)
+        gating_16 = self.gating_signal(conv_8, 8*self.FILTER_NUM, batch_norm)
         att_16 = self.attention_block(conv_16, gating_16, 8*self.FILTER_NUM)
-        up_16 = layers.UpSampling2D(size=(self.UP_SAMP_SIZE, self.UP_SAMP_SIZE), data_format="channels_last")(convlstm)
+        up_16 = layers.UpSampling2D(size=(self.UP_SAMP_SIZE, self.UP_SAMP_SIZE), data_format="channels_last")(conv_8)
         up_16 = layers.concatenate([up_16, att_16], axis=axis)
         up_conv_16 = self.double_conv_layer(up_16, self.FILTER_SIZE, 8*self.FILTER_NUM, dropout_rate, batch_norm)
         # UpRes 7

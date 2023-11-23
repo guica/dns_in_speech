@@ -15,9 +15,6 @@ class Sound(object):
     noise_sounds = None
     clean_sounds = None
 
-    train_X = None
-    val_X = None
-    test_X = None
     TOO_SHORT_ERROR = 'Shape too short'
 
     def __init__(self, sounds_path, noise_sounds_path, base_shape_size, limit=25000, pattern='.wav', seed=13):
@@ -83,12 +80,12 @@ class Sound(object):
         clean_process.join()
 
         # Dividir os sons em conjuntos de treinamento, validação e teste
-        train_split = 0.8
-        val_split = 0.1
+        # train_split = 0.8
+        # val_split = 0.1
 
-        self.train_X = self.clean_sounds[:int(len(self.clean_sounds) * train_split)]
-        self.val_X = self.clean_sounds[int(len(self.clean_sounds) * train_split):int(len(self.clean_sounds) * (train_split + val_split))]
-        self.test_X = self.clean_sounds[int(len(self.clean_sounds) * (train_split + val_split)):]
+        # self.train_X = self.clean_sounds[:int(len(self.clean_sounds) * train_split)]
+        # self.val_X = self.clean_sounds[int(len(self.clean_sounds) * train_split):int(len(self.clean_sounds) * (train_split + val_split))]
+        # self.test_X = self.clean_sounds[int(len(self.clean_sounds) * (train_split + val_split)):]
 
     def load_sounds_in_queue(self, sound_files, queue, message):
         with Pool() as pool:
