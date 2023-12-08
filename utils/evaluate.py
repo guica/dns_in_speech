@@ -1,4 +1,5 @@
-from tensorflow.keras.models import load_model
+from abc import ABC, abstractmethod
+import os
 
 from pesq import pesq
 import pystoi
@@ -6,8 +7,8 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
 import numpy as np
-
-from abc import ABC, abstractmethod
+from tensorflow.keras.models import load_model
+from keras import backend as K
 
 from utils import calculate_snr, reconstruct_signal_from_stft
 from data_generators import NoisyTargetWithMetricsGenerator, PESQWithMetricsGenerator
@@ -18,12 +19,14 @@ class Evaluator(ABC):
     model = None
     model_name = None
     data_generator = None
+    SAVE_DIR = None
 
-    def __init__(self, base_shape_size, speech_path, noise_path, model_path, model_name):
+    def __init__(self, base_shape_size, speech_path, noise_path, model_path, model_name, save_dir='./metrics/'):
         self.sound_base = Sound(speech_path, noise_path, base_shape_size)
         self.model_name = model_name
-        self.model = load_model(model_path)
-    
+        self.model = load_model(model_path, custom_objects={"K": K})
+        self.SAVE_DIR = save_dir
+
     def stft_to_signal(self, stft, sampling_rate=8000, window_size=255, overlap=128):
         A = stft[..., 0]
         phi = stft[..., 1]
@@ -108,9 +111,13 @@ class NoisyTargetEvaluator(Evaluator):
 
         # Format the datetime as a string to use in the file name
         datetime_str = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+        
+        if not os.path.exists(self.SAVE_DIR):
+            # Se não existir, criar o diretório
+            os.makedirs(self.SAVE_DIR)
 
         # Define the file name with the datetime
-        file_name = f"{self.model_name}-metrics_{datetime_str}.xlsx"
+        file_name = f"{self.SAVE_DIR + self.model_name}-metrics_{datetime_str}.xlsx"
         df_resultado.to_excel(file_name, index=False)
         print('File saved to {}'.format(file_name))
 

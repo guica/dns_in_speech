@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import models, layers
-from tensorflow.keras import backend as K
+import tensorflow.keras.backend as K
 from tensorflow.keras.layers import ConvLSTM1D, MultiHeadAttention, LayerNormalization, Dense
 
 
@@ -21,7 +21,7 @@ class AttentionResUnet(object):
 
     def __init__(self, input_shape):
         self.INPUT_SIZE = (input_shape[0], input_shape[1])
-        self.INPUT_CHANNEL = input_shape[0]
+        self.INPUT_CHANNEL = input_shape[2]
         self.OUTPUT_MASK_CHANNEL = self.INPUT_CHANNEL
 
     def expend_as(self, tensor, rep):
@@ -173,19 +173,19 @@ class AttentionResUnet(object):
         # valid padding
         # batch normalization
         # sigmoid nonlinear activation
-        conv_final = layers.Conv2D(1, kernel_size=(1,1))(up_conv_128)
+        conv_final = layers.Conv2D(self.INPUT_CHANNEL, kernel_size=(1,1))(up_conv_128)
         conv_final = layers.BatchNormalization(axis=axis)(conv_final)
 
         conv_final = layers.Activation('relu')(conv_final)
 
-        conv_final2 = layers.Conv2D(1, kernel_size=(1,1))(up_conv_128)
-        conv_final2 = layers.BatchNormalization(axis=axis)(conv_final2)
-        conv_final2 = layers.Activation('relu')(conv_final2)
+        # conv_final2 = layers.Conv2D(1, kernel_size=(1,1))(up_conv_128)
+        # conv_final2 = layers.BatchNormalization(axis=axis)(conv_final2)
+        # conv_final2 = layers.Activation('relu')(conv_final2)
 
-        final = layers.concatenate([conv_final, conv_final2], axis=-1)
+        # final = layers.concatenate([conv_final, conv_final2], axis=-1)
 
         # Model integration
-        model = models.Model(inputs, final, name="AttentionResUNet")
+        model = models.Model(inputs, conv_final, name="AttentionResUNet")
         return model
 
 

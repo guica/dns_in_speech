@@ -9,11 +9,12 @@ from utils import somar_sinais, add_white_gaussian_noise, calculate_stft_magnitu
 
 
 class DataGenerator(ABC):
-    def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True):
+    def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True, return_snr=False):
         self.sound_files = sound_files
         self.noise_files = noise_files
         self.normalize_phi = normalize_phi
         self.block_size = block_size
+        self.return_snr = return_snr
 
     def pick_random_blocks(self, batch_size):
             
@@ -94,6 +95,29 @@ class DataGenerator(ABC):
             phi = F[:, :, 1]
         
         return A, phi
+    
+    def calcular_snr_db(self, sinal, sinal_com_ruido):
+        """
+        Calcula a Relação Sinal-Ruído (SNR) em decibéis.
+
+        :param sinal: Array do sinal original.
+        :param sinal_com_ruido: Array do sinal com ruído.
+        :return: SNR em decibéis.
+        """
+        # Calcula o sinal de ruído
+        ruido = sinal_com_ruido - sinal
+
+        # Calcula a potência do sinal e do ruído
+        potencia_sinal = np.mean(np.square(sinal))
+        potencia_ruido = np.mean(np.square(ruido))
+
+        # Evita a divisão por zero
+        if potencia_ruido == 0:
+            return 100.
+
+        # Calcula a SNR em decibéis
+        snr_db = 10 * np.log10(potencia_sinal / potencia_ruido)
+        return snr_db
 
     @abstractmethod
     def generate_sample_completo(self, batch_size=32, only_return_mudule=False):
@@ -101,8 +125,8 @@ class DataGenerator(ABC):
 
 
 class NoisyTargetGenerator(DataGenerator):
-    def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True):
-        super().__init__(sound_files, noise_files, block_size=block_size, normalize_phi=normalize_phi)
+    def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True, return_snr=False):
+        super().__init__(sound_files, noise_files, block_size=block_size, normalize_phi=normalize_phi, return_snr=return_snr)
 
     def generate_sample_completo(self, batch_size=32, include_clean=False, only_return_mudule=False):
         while True:
@@ -130,7 +154,7 @@ class NoisyTargetGenerator(DataGenerator):
                 F_noisy = self.assemble_phasors(A_noisy, phi_noisy)
                 
                 if not only_return_mudule:
-                    # Adiciona os exemplos aos lotes de treinamento
+                    # Adiciona os exemplos de fasores completos aos lotes de treinamento
                     x_train.append(F_noisy)
                     y_train.append(F)
                     
@@ -139,8 +163,16 @@ class NoisyTargetGenerator(DataGenerator):
                         y_train.append(F)
                 
                 else:
-                    # Adiciona os exemplos aos lotes de treinamento
-                    x_train.append(F_noisy[..., 0].reshape(F_noisy.shape[0], F_noisy.shape[1], 1))
+                    # Adiciona os exemplos somente do modulo aos lotes de treinamento
+                    if self.return_snr:
+                        snr_matrix = np.ones(F_noisy.shape[0], F_noisy.shape[1], 1)
+                        snr = self.calcular_snr_db(sound_escalado, noisy_sound)
+                        snr_matrix = snr * snr_matrix
+
+                        x_train.append(np.concatenate([F_noisy[..., 0].reshape(F_noisy.shape[0], F_noisy.shape[1], 1), snr_matrix], axis=-1))
+                    else:
+                        x_train.append(F_noisy[..., 0].reshape(F_noisy.shape[0], F_noisy.shape[1], 1))
+
                     y_train.append(F[..., 0].reshape(F.shape[0], F.shape[1], 1))
                     
                     if include_clean:
