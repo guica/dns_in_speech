@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-gpu-jupyter
+FROM tensorflow/tensorflow:2.14.0-gpu-jupyter
 ENV PYTHONUNBUFFERED 1
 
 # ADD requirements.txt /tf/

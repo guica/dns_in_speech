@@ -105,7 +105,7 @@ class AttentionResUnet(object):
         return result_bn
 
 
-    def Attention_ResUNet(self, dropout_rate=0.1, batch_norm=True):
+    def get_model(self, dropout_rate=0.1, batch_norm=True):
         '''
         Rsidual UNet construction, with attention gate
         convolution: 3*3 SAME padding
@@ -118,7 +118,6 @@ class AttentionResUnet(object):
                 if True batch normalization
         :return: model
         '''
-
         # input data
         # dimension of the image depth
         inputs = layers.Input((self.INPUT_SIZE[0], self.INPUT_SIZE[1], self.INPUT_CHANNEL), dtype=tf.float32)
@@ -187,31 +186,3 @@ class AttentionResUnet(object):
         # Model integration
         model = models.Model(inputs, conv_final, name="AttentionResUNet")
         return model
-
-
-class TransformerEncoderLayer(tf.keras.layers.Layer):
-    def __init__(self, d_model, num_heads, dff, rate=0.1):
-        super(TransformerEncoderLayer, self).__init__()
-
-        self.mha = MultiHeadAttention(key_dim=d_model, num_heads=num_heads)
-        self.ffn = tf.keras.Sequential([
-            Dense(dff, activation='relu'),
-            Dense(d_model)
-        ])
-
-        self.layernorm1 = LayerNormalization(epsilon=1e-6)
-        self.layernorm2 = LayerNormalization(epsilon=1e-6)
-
-        self.dropout1 = tf.keras.layers.Dropout(rate)
-        self.dropout2 = tf.keras.layers.Dropout(rate)
-
-    def call(self, x, training=True):
-        attn_output = self.mha(x, x, x)  # Self attention
-        attn_output = self.dropout1(attn_output, training=training)
-        out1 = self.layernorm1(x + attn_output)
-
-        ffn_output = self.ffn(out1)
-        ffn_output = self.dropout2(ffn_output, training=training)
-        out2 = self.layernorm2(out1 + ffn_output)
-
-        return out2

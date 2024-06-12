@@ -60,7 +60,8 @@ class DataGenerator:
                 snr = calculate_snr(sound, noisy_sound)
 
                 # Calcula o ID
-                ID = itakura_distortion(sound, noisy_sound, window, order)
+                # ID = itakura_distortion(sound, noisy_sound, window, order)
+                ID = 1
                 
                 x_train.append(noisy_sound)
                 y_train.append(sound)

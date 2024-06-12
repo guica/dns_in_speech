@@ -167,3 +167,20 @@ class DeepNoiseSuppressionWithNonIntrusivePESQNet(object):
         output_phase = Add()([input_phase, output_phase])
 
         return output_module, output_phase
+    
+def weighted_msle(y_true, y_pred):
+    # Define o peso para penalizar mais as subestimações
+    w = 2.0
+
+    # Evita valores negativos adicionando 1 antes de aplicar o log
+    log_true = 20 * tf.math.log(y_true + 1)
+    log_pred = 20 * tf.math.log(y_pred + 1)
+
+    # Cálculo do erro
+    error = log_true - log_pred
+
+    # Aplica pesos diferentes para superestimação e subestimação
+    weighted_error = tf.where(error > 0, w * error, error)
+
+    # Retorna a média do erro logarítmico quadrado ponderado
+    return tf.reduce_mean(tf.abs(weighted_error))

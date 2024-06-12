@@ -40,7 +40,7 @@ class DataGenerator(ABC):
 
         return sound_batch, noise_batch
 
-    def normalize_and_add_noise(self, sound, noise):
+    def normalize_and_add_noise(self, sound, noise, add_white=True):
         min_valor = np.min(sound)
         max_valor = np.max(sound)
         
@@ -65,7 +65,9 @@ class DataGenerator(ABC):
             # raise ValueError(f"A potência do sinal de voz é {potencia_sound}. A adição de ruído não pode ser computada")
             return None, None
 
-        noisy_sound = add_white_gaussian_noise(noisy_sound, np.random.randint(20, 30, size=(1,)[0]))
+        if add_white:
+            noisy_sound = add_white_gaussian_noise(noisy_sound, np.random.randint(15, 30, size=(1,)[0]))
+        
         noisy_sound = np.clip(noisy_sound, -1.0, 1.0)
 
         return sound_escalado, noisy_sound
@@ -125,8 +127,9 @@ class DataGenerator(ABC):
 
 
 class NoisyTargetGenerator(DataGenerator):
-    def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True, return_snr=False):
+    def __init__(self, sound_files, noise_files, block_size=8, normalize_phi=True, return_snr=False, add_white=True):
         super().__init__(sound_files, noise_files, block_size=block_size, normalize_phi=normalize_phi, return_snr=return_snr)
+        self.add_white = add_white
 
     def generate_sample_completo(self, batch_size=32, include_clean=False, only_return_mudule=False):
         while True:
@@ -139,7 +142,7 @@ class NoisyTargetGenerator(DataGenerator):
             # Adiciona ruído a cada som e calcula a nota PESQ
             for sound, noise in zip(sound_batch, noise_batch):
 
-                sound_escalado, noisy_sound = self.normalize_and_add_noise(sound, noise)
+                sound_escalado, noisy_sound = self.normalize_and_add_noise(sound, noise, add_white=self.add_white)
                 
                 if sound_escalado is None or noisy_sound is None:
                     continue
@@ -321,12 +324,16 @@ class NoisyTargetWithMetricsGenerator(DataGenerator):
             
             x_train = []
             y_train = []
+
+            x_wave = []
+            y_wave = []
+
             metrics_data = []
             
             # Adiciona ruído a cada som e calcula a nota PESQ
             for sound, noise in zip(sound_batch, noise_batch):
                 # Normaliza a voz e adiciona ruído
-                sound_escalado, noisy_sound = self.normalize_and_add_noise(sound, noise)
+                sound_escalado, noisy_sound = self.normalize_and_add_noise(sound, noise, add_white=True)
                 
                 if sound_escalado is None or noisy_sound is None:
                     continue
@@ -358,14 +365,27 @@ class NoisyTargetWithMetricsGenerator(DataGenerator):
                 F_noisy = self.assemble_phasors(A_noisy, phi_noisy)
                 
                 # Adiciona os exemplos aos lotes de treinamento
-                x_train.append(F_noisy)
-                y_train.append(F)
+
+                if only_return_mudule:
+                    x_train.append(F_noisy[..., 0].reshape(F_noisy.shape[0], F_noisy.shape[1], 1))
+                    y_train.append(F[..., 0].reshape(F.shape[0], F.shape[1], 1))
+                
+                else:
+                    x_train.append(F_noisy)
+                    y_train.append(F)
+
+                x_wave.append(noisy_sound)
+                y_wave.append(sound_escalado)
 
             x_train = np.array(x_train)
             y_train = np.array(y_train)
+
+            x_wave = np.array(x_wave)
+            y_wave = np.array(y_wave)
+
             metrics_df = pd.DataFrame(metrics_data, columns=['PESQ', 'STOI', 'SNR'])
 
-            yield x_train, y_train, metrics_df
+            yield (x_wave, y_wave), (x_train, y_train) , metrics_df
 
 
 class PESQWithMetricsGenerator(DataGenerator):

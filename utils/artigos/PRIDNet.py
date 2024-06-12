@@ -320,6 +320,9 @@ def create_model(input_shape):
     ksm = Conv2D(filters=channels, kernel_size=(3,3), strides=1, padding='same')(ksm)
     ksm = Activation('relu')(ksm)
 
+    # Nova. utilização de máscara
+    # ksm = Multiply()([input, ksm])
+
     print("Kernel Selection Module =",ksm.shape)
     model = Model(inputs=[input], outputs=[ksm])
     return model

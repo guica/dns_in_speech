@@ -59,7 +59,7 @@ class Sound(object):
                 break
             clean_sounds.append(sound)
 
-        clean_sounds = [sound for sound in clean_sounds if sound != self.TOO_SHORT_ERROR]
+        clean_sounds = [sound for sound in clean_sounds if not isinstance(sound, str)]
         random.shuffle(clean_sounds)
         self.clean_sounds = np.concatenate(clean_sounds, axis=0)
 
@@ -71,7 +71,7 @@ class Sound(object):
                 break
             noise_sounds.append(sound)
 
-        noise_sounds = [sound for sound in noise_sounds if sound != self.TOO_SHORT_ERROR]
+        noise_sounds = [sound for sound in noise_sounds if not isinstance(sound, str)]
         random.shuffle(noise_sounds)
         self.noise_sounds = np.concatenate(noise_sounds, axis=0)
 
