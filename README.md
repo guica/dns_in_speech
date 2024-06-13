@@ -21,9 +21,9 @@ This repository contains the code and resources for the thesis "Noise Removal in
 - **Kalman Filter**: Utilizes dynamic models to estimate the voice and noise components using autoregressive model.
 
 ### Deep Neural Networks
-- **Attention Res U-Net**: An advanced neural network model incorporating attention mechanisms and residual connections [available here](https://ieeexplore.ieee.org/document/9902215.).
-- **FCRN with Non-Intrusive PESQNet**: Fully Convolutional Recurrent Network mediated by a non-intrusive PESQNet [available here](https://ieeexplore.ieee.org/document/9750869.).
-- **PRIDNet**: Pyramid Real Image Denoising Network with quantization techniques for reduced computational complexity [available here](https://ieeexplore.ieee.org/document/9750869.) and [here](https://arxiv.org/pdf/1808.06474.pdf.).
+- **Attention Res U-Net**: An advanced neural network model incorporating attention mechanisms and residual connections [available here](https://ieeexplore.ieee.org/document/9902215).
+- **FCRN with Non-Intrusive PESQNet**: Fully Convolutional Recurrent Network mediated by a non-intrusive PESQNet [available here](https://ieeexplore.ieee.org/document/9750869).
+- **PRIDNet**: Pyramid Real Image Denoising Network with quantization techniques for reduced computational complexity [available here](https://ieeexplore.ieee.org/document/9750869) and [here](https://arxiv.org/pdf/1808.06474.pdf).
 
 ## Implementation
 ### Environment
