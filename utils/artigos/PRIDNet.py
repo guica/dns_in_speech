@@ -23,16 +23,16 @@ class Convolutional_block(tf.keras.layers.Layer):
 
     def call(self, X):
         X_1 = self.conv_1(X)
-        X_1 = Activation('relu')(X_1)
+        X_1 = Activation('gelu')(X_1)
 
         X_2 = self.conv_2(X_1)
-        X_2 = Activation('relu')(X_2)
+        X_2 = Activation('gelu')(X_2)
 
         X_3 = self.conv_3(X_2)
-        X_3 = Activation('relu')(X_3)
+        X_3 = Activation('gelu')(X_3)
 
         X_4 = self.conv_4(X_3)
-        X_4 = Activation('relu')(X_4)
+        X_4 = Activation('gelu')(X_4)
         
         #print('---conv block=',X_4.shape)
         
@@ -43,7 +43,7 @@ class Channel_attention(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.C=C
         self.gap = GlobalAveragePooling2D()
-        self.dense_middle = Dense(units=2, activation='relu')
+        self.dense_middle = Dense(units=2, activation='gelu')
         self.dense_sigmoid = Dense(units=self.C, activation='sigmoid')
     
     def get_config(self):
@@ -86,40 +86,40 @@ class Avg_pool_Unet_Upsample_msfe(tf.keras.layers.Layer):
 
         self.conv_32_down_lst = []
         for i in range(n_it):
-            self.conv_32_down_lst.append(Conv2D(filters=64, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_32_down_lst.append(Conv2D(filters=64, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_64_down_lst = []
         for i in range(n_it):
-            self.conv_64_down_lst.append(Conv2D(filters=128, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_64_down_lst.append(Conv2D(filters=128, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_128_down_lst = []
         for i in range(n_it):
-            self.conv_128_down_lst.append(Conv2D(filters=256, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_128_down_lst.append(Conv2D(filters=256, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_256_down_lst = []
         for i in range(n_it):
-            self.conv_256_down_lst.append(Conv2D(filters=512, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_256_down_lst.append(Conv2D(filters=512, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_512_down_lst = []
         for i in range(n_it):
-            self.conv_512_down_lst.append(Conv2D(filters=1024, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_512_down_lst.append(Conv2D(filters=1024, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
 
         self.conv_32_up_lst = []
         for i in range(n_it):
-            self.conv_32_up_lst.append(Conv2D(filters=64, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_32_up_lst.append(Conv2D(filters=64, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_64_up_lst = []
         for i in range(n_it):
-            self.conv_64_up_lst.append(Conv2D(filters=128, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_64_up_lst.append(Conv2D(filters=128, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_128_up_lst = []
         for i in range(n_it):
-            self.conv_128_up_lst.append(Conv2D(filters=256, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_128_up_lst.append(Conv2D(filters=256, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
         self.conv_256_up_lst = []
         for i in range(n_it):
-            self.conv_256_up_lst.append(Conv2D(filters=512, kernel_size=[3, 3], activation='relu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
+            self.conv_256_up_lst.append(Conv2D(filters=512, kernel_size=[3, 3], activation='gelu', padding='same', kernel_regularizer=regularizers.l2(l2=0.001)))
 
 
         self.conv_3 = Conv2D(filters=channels, kernel_size=[1, 1])
@@ -167,19 +167,20 @@ class Avg_pool_Unet_Upsample_msfe(tf.keras.layers.Layer):
         conv4 = pool3
         for c_256 in self.conv_256_down_lst:
             conv4 = c_256(conv4)
-        pool4 = self.pooling4_unet(conv4)
+        #pool4 = self.pooling4_unet(conv4)
 
-        conv5 = pool4
-        for c_512 in self.conv_512_down_lst:
-            conv5 = c_512(conv5)
+        #conv5 = pool4
+        #for c_512 in self.conv_512_down_lst:
+        #    conv5 = c_512(conv5)
 
         # ---Unet upsampling---
-        up6 = self.upsample_and_concat(conv5, conv4, 0)
-        conv6 = up6
-        for c_256 in self.conv_256_up_lst:
-            conv6 = c_256(conv6)
+        #up6 = self.upsample_and_concat(conv5, conv4, 0)
+        #conv6 = up6
+        #for c_256 in self.conv_256_up_lst:
+        #    conv6 = c_256(conv6)
 
-        up7 = self.upsample_and_concat(conv6, conv3, 1)
+        up7 = self.upsample_and_concat(conv4, conv3, 1)
+        #up7 = self.upsample_and_concat(conv6, conv3, 1)
         conv7 = up7
         for c_128 in self.conv_128_up_lst:
             conv7 = c_128(conv7)
@@ -203,8 +204,8 @@ class Avg_pool_Unet_Upsample_msfe(tf.keras.layers.Layer):
     def call(self, X):
         avg_pool = self.avg_pool(X)
         #print("ap =",avg_pool.shape)
-        # unet = self.unet(avg_pool)
-        unet = self.unet_layers_lstm(avg_pool)
+        unet = self.unet(avg_pool)
+        #unet = self.unet_layers_lstm(avg_pool)
         upsample = self.upsample(unet)
         return upsample
 
@@ -243,7 +244,7 @@ class Kernel_selecting_module(tf.keras.layers.Layer):
         self.c_5 = Conv2D(filters=self.C, kernel_size=(5,5), strides=1, padding='same', kernel_regularizer=regularizers.l2(l2=0.001))
         self.c_7 = Conv2D(filters=self.C, kernel_size=(7,7), strides=1, padding='same', kernel_regularizer=regularizers.l2(l2=0.001))
         self.gap = GlobalAveragePooling2D()
-        self.dense_two = Dense(units=2, activation='relu')
+        self.dense_two = Dense(units=2, activation='gelu')
         self.dense_c1 = Dense(units=self.C)
         self.dense_c2 = Dense(units=self.C)
         self.dense_c3 = Dense(units=self.C)
@@ -295,7 +296,7 @@ def create_model(input_shape):
     # ca_block = Channel Attention block
     # msfe_block = Multi scale feature extraction block
     # ksm = Kernel Selecting Module
-    tf.keras.backend.clear_session()
+    #tf.keras.backend.clear_session()
 
     channels = input_shape[-1]
 
@@ -318,7 +319,7 @@ def create_model(input_shape):
 
     ksm = Kernel_selecting_module()(msfe_block)
     ksm = Conv2D(filters=channels, kernel_size=(3,3), strides=1, padding='same')(ksm)
-    ksm = Activation('relu')(ksm)
+    ksm = Activation('gelu')(ksm)
 
     # Nova. utilização de máscara
     # ksm = Multiply()([input, ksm])

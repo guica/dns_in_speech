@@ -1,5 +1,7 @@
 # Noise Removal in Voice Signals: Deep Neural Networks vs. Wiener and Kalman Filters
 
+![](https://github.com/guica/dns_in_speech/blob/main/Resultado%20-%20Sons%20Filtrados/Som%2013/stft_comparison.png)
+
 ## Introduction
 This repository contains the code and resources for the thesis "Noise Removal in Voice Signals: Deep Neural Networks vs. Wiener and Kalman Filters," presented by Guilherme de Camargo as part of his Electrical Engineering degree at Universidade Presbiteriana Mackenzie. The project compares traditional noise removal methods with deep learning approaches to improve voice signal quality and intelligibility.
 
