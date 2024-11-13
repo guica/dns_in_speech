@@ -204,8 +204,8 @@ class Avg_pool_Unet_Upsample_msfe(tf.keras.layers.Layer):
     def call(self, X):
         avg_pool = self.avg_pool(X)
         #print("ap =",avg_pool.shape)
-        unet = self.unet(avg_pool)
-        #unet = self.unet_layers_lstm(avg_pool)
+        # unet = self.unet(avg_pool)
+        unet = self.unet_layers_lstm(avg_pool)
         upsample = self.upsample(unet)
         return upsample
 

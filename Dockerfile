@@ -8,5 +8,6 @@ RUN pip install pip --upgrade
 RUN apt update && apt install -y ffmpeg
 RUN apt install -y graphviz
 RUN pip install scikit-learn glob2 tqdm pesq pystoi pandas jupyterlab openpyxl librosa pydub seaborn pydot
+RUN pip install torch torchvision torchaudio
 
 CMD jupyter lab --ip=0.0.0.0 --port=8888 --allow-root

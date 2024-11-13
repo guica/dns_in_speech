@@ -4,7 +4,7 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.layers import ConvLSTM1D, MultiHeadAttention, LayerNormalization, Dense, Multiply
 
 
-class AttentionResUnetMask(object):
+class AttentionResUnet(object):
     '''
     Hyper-parameters
     '''
@@ -103,7 +103,7 @@ class AttentionResUnetMask(object):
         return result_bn
 
 
-    def Attention_ResUNet_Mask(self, dropout_rate=0.1, batch_norm=True):
+    def get_model(self, dropout_rate=0.1, batch_norm=True):
         '''
         Rsidual UNet construction, with attention gate
         convolution: 3*3 SAME padding

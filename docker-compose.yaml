@@ -1,12 +1,12 @@
 services:
 
-  notebook:
+  notebook-1:
     restart: always
     image: camargog95/tcc:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: 'notebook'
+    container_name: 'notebook-1'
     deploy:
       resources:
         reservations:
@@ -14,6 +14,9 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+              # device_ids:
+              #   - GPU-3ce3ca2c-8180-4d6d-f87e-e1af8beb49eb # 1050 Ti
+              #   - GPU-f2f086db-d4c7-fc78-cc04-b814000f9717 # 1070 Ti
     ports:
       - '8888:8888'
       - '8088:8088'
@@ -23,5 +26,33 @@ services:
     environment:
       - JUPYTER_PATH=/tf/utils/
       - TF_CPP_MIN_LOG_LEVEL=3
-      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      # - TF_FORCE_GPU_ALLOW_GROWTH=true
       - TF_MIN_GPU_MULTIPROCESSOR_COUNT=3
+  
+  # notebook-2:
+  #   restart: always
+  #   image: camargog95/tcc:latest
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: 'notebook-2'
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             # count: all
+  #             capabilities: [gpu]
+  #             device_ids:
+  #               - GPU-f2f086db-d4c7-fc78-cc04-b814000f9717 # 1070 Ti
+  #   ports:
+  #     - '8889:8888'
+  #     - '8089:8088'
+  #   volumes:
+  #     - './:/tf'
+  #     - '/home/gc/Documents/HDD/TCC/:/tf/Dados'
+  #   environment:
+  #     - JUPYTER_PATH=/tf/utils/
+  #     - TF_CPP_MIN_LOG_LEVEL=3
+  #     - TF_FORCE_GPU_ALLOW_GROWTH=true
+  #     - TF_MIN_GPU_MULTIPROCESSOR_COUNT=3
